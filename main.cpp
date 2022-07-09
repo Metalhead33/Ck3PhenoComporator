@@ -160,9 +160,22 @@ int main(int argc, char *argv[])
 	for(int i = 0; i < argc; ++i) {
 		args.push_back(QString::fromLocal8Bit(argv[i]));
 	}
-	if(args.size() >= 2 && args[1] == QStringLiteral("--createIndices")) outputIndices();
-	else if(args.size() >= 2 && args[1] == QStringLiteral("--useIndices")) useIndices();
-	else if(args.size() >= 2 && args[1] == QStringLiteral("--generateCultureMaps")) generateCultureMaps();
-	else defaultBehaviour();
+	if(args.size() < 2 || args[1] == QStringLiteral("--help")) {
+		STDOUT << "Correct usage:\n"
+			   << args[0] << " --help                - Brings up this instruction guide\n"
+			   << args[0] << " --createIndices       - Creates phenotype and culture indices for future usage.\n"
+			   << args[0] << " --generateCultureMaps - Generates new culture maps from said indices.\n"
+			   << args[0] << " --useIndices          - Uses said indices to generate phenotype assignments for cultures.\n"
+			   << args[0] << " --oldWay              - Generates phenotype assignments for cultures the old-fashioend, ineffective way. (DEPRECATED, NOT RECOMMENDED!)\n";
+		STDOUT.flush();
+	}
+	else if(args[1] == QStringLiteral("--createIndices")) outputIndices();
+	else if(args[1] == QStringLiteral("--useIndices")) useIndices();
+	else if(args[1] == QStringLiteral("--generateCultureMaps")) generateCultureMaps();
+	else if(args[1] == QStringLiteral("--oldWay")) defaultBehaviour();
+	else {
+		STDOUT << "Invalid command!\n";
+		STDOUT.flush();
+	}
 	return 0;
 }

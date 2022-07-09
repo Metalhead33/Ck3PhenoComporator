@@ -17,7 +17,7 @@ double compareWith(const ConstPixelSpan& mask, const ConstPixelSpan& pheno, cons
 	return toReturn;
 }
 
-void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, QVector<quint32>& indices)
+void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, QVector<int>& indices)
 {
 	QRgb maskColour = colour.rgb();
 	for(size_t i = 0; i < mask.size(); ++i) {
@@ -28,7 +28,7 @@ void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, QVector
 	}
 }
 
-void getPhenoIndices(const ConstPixelSpan& pheno, QVector<quint32>& primaryIndices, QVector<quint32>& secondaryIndices)
+void getPhenoIndices(const ConstPixelSpan& pheno, QVector<int>& primaryIndices, QVector<int>& secondaryIndices)
 {
 	for(size_t i = 0; i < pheno.size(); ++i) {
 		const auto& phenoC = pheno[i];
@@ -37,10 +37,18 @@ void getPhenoIndices(const ConstPixelSpan& pheno, QVector<quint32>& primaryIndic
 	}
 }
 
-void getPhenoIndices(const ConstPixelSpan& pheno, QVector<quint32>& primaryIndices)
+void getPhenoIndices(const ConstPixelSpan& pheno, QVector<int>& primaryIndices)
 {
 	for(size_t i = 0; i < pheno.size(); ++i) {
 		const auto& phenoC = pheno[i];
 		if(phenoC == YELLOW) primaryIndices.push_back(i);
 	}
+}
+
+double compareWith(const IndexContainer& cultureIndices, const IndexContainer& phenoIndices, bool secondary)
+{
+	IndexContainer nindices = cultureIndices;
+	nindices.intersect(phenoIndices);
+	if(secondary) return static_cast<double>(nindices.size()) * 0.05;
+	else return static_cast<double>(nindices.size());
 }

@@ -5,18 +5,13 @@
 #include <QImage>
 #include <cmath>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonObject>
 
 static bool cmp(const std::pair<QString, int>& a, const std::pair<QString, int>& b) {
 	return a.second > b.second;
 }
-void doTheComparisons(const ConstPixelSpan& mask, const QColor& colour, const PathMap& paths, QTextStream& textStream) {
-	QMap<QString,double> phenoOccurences;
-	for(auto it = std::begin(paths); it != std::end(paths); ++it) {
-		QFileInfo fileinfo(it.value());
-		QImage imag(fileinfo.absoluteFilePath());
-		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
-		phenoOccurences.insert(it.key(),compareWith(mask, ConstPixelSpan(reinterpret_cast<const QRgb*>(imag.bits()),imag.width() * imag.height()),colour));
-	}
+void doTheComparisons(const QMap<QString,double>& phenoOccurences, QTextStream& textStream) {
 	double summa = 0.0;
 	double greatest = 0.0;
 	for(auto it = std::begin(phenoOccurences); it != std::end(phenoOccurences); ++it) {
@@ -34,6 +29,16 @@ void doTheComparisons(const ConstPixelSpan& mask, const QColor& colour, const Pa
 		textStream << "\t\t\t" << it.second << " = " << it.first << "\n";
 	}
 }
+void doTheComparisons(const ConstPixelSpan& mask, const QColor& colour, const PathMap& paths, QTextStream& textStream) {
+	QMap<QString,double> phenoOccurences;
+	for(auto it = std::begin(paths); it != std::end(paths); ++it) {
+		QFileInfo fileinfo(it.value());
+		QImage imag(fileinfo.absoluteFilePath());
+		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
+		phenoOccurences.insert(it.key(),compareWith(mask, ConstPixelSpan(reinterpret_cast<const QRgb*>(imag.bits()),imag.width() * imag.height()),colour));
+	}
+	doTheComparisons(phenoOccurences,textStream);
+}
 
 void doComparisons(const CultureMap& cultures, const PathMap& paths, const QDir& outputDirectory) {
 	for(auto it = std::begin(cultures); it != std::end(cultures); ++it) {
@@ -47,6 +52,75 @@ void doComparisons(const CultureMap& cultures, const PathMap& paths, const QDir&
 			if(fileOut.open(QFile::WriteOnly | QFile::Text)) {
 				QTextStream textStream(&fileOut);
 				doTheComparisons(cultureMap,it.value().cultureColour,paths,textStream);
+				textStream.flush();
+				fileOut.flush();
+				fileOut.close();
+			}
+		}  catch (std::exception& e) {
+			STDOUT << e.what() << '\n';
+			STDOUT.flush();
+		}
+	}
+	STDOUT << "Finished!\n";
+	STDOUT.flush();
+}
+
+void doComparisons(const PathMap& paths, QJsonObject& phenoOut)
+{
+	for(auto it = std::begin(paths); it != std::end(paths); ++it) {
+		QFileInfo fileinfo(it.value());
+		QImage imag(fileinfo.absoluteFilePath());
+		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
+		ConstPixelSpan phenotypeMap(reinterpret_cast<const QRgb*>(imag.bits()),imag.width() * imag.height());
+		QVector<int> primaryIndices;
+		QVector<int> secondaryIndices;
+		getPhenoIndices(phenotypeMap,primaryIndices,secondaryIndices);
+		QJsonArray primaryArr,secondaryArr;
+		for(const auto& zit : qAsConst(primaryIndices)) primaryArr.push_back(zit);
+		for(const auto& zit : qAsConst(secondaryIndices)) secondaryArr.push_back(zit);
+		QJsonObject tmpObj;
+		tmpObj["primary"] = primaryArr;
+		tmpObj["secondary"] = primaryArr;
+		phenoOut[it.key()] = tmpObj;
+	}
+}
+
+void doComparisons(const CultureMap& cultures, QJsonObject& cultureOut)
+{
+	for(auto it = std::begin(cultures); it != std::end(cultures); ++it) {
+		QImage cultureImg(it.value().cultureMapPath);
+		if(cultureImg.format() != QImage::Format_RGB32) cultureImg.convertTo(QImage::Format_RGB32);
+		ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),cultureImg.width() * cultureImg.height());
+		QVector<int> indices;
+		getCultureIndices(cultureMap,it.value().cultureColour,indices);
+		QJsonArray arr;
+		for(const auto& zit : qAsConst(indices)) arr.push_back(zit);
+		cultureOut[it.key()] = arr;
+	}
+}
+
+void doTheComparisons(const IndexContainer& indices, const PhenotypeIndexMap& phenotypes, QTextStream& textStream)
+{
+	QMap<QString,double> phenoOccurences;
+	for(auto it = std::begin(phenotypes); it != std::end(phenotypes); ++it) {
+		double val = 0.0;
+		val += compareWith(indices,it.value().primary,false);
+		val += compareWith(indices,it.value().secondary,true);
+		phenoOccurences.insert(it.key(),val);
+	}
+	doTheComparisons(phenoOccurences,textStream);
+}
+
+void doComparisons(const CultureIndexMap& cultures, const PhenotypeIndexMap& phenotypes, const QDir& outputDirectory)
+{
+	for(auto it = std::begin(cultures); it != std::end(cultures); ++it) {
+		try {
+			STDOUT << "Processing " << it.key() << '\n';
+			STDOUT.flush();
+			QFile fileOut(outputDirectory.absoluteFilePath(QStringLiteral("%1.txt").arg(it.key())));
+			if(fileOut.open(QFile::WriteOnly | QFile::Text)) {
+				QTextStream textStream(&fileOut);
+				doTheComparisons(it.value(),phenotypes,textStream);
 				textStream.flush();
 				fileOut.flush();
 				fileOut.close();

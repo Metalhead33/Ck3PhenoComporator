@@ -21,3 +21,6 @@ HEADERS += \
 	Comparison.hpp \
 	Culture.hpp \
 	Stdout.hpp
+
+RESOURCES += \
+	resources.qrc

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/root">
+        <file>plainMap.png</file>
+    </qresource>
+</RCC>

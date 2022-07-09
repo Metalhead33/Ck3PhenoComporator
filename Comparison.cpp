@@ -133,3 +133,27 @@ void doComparisons(const CultureIndexMap& cultures, const PhenotypeIndexMap& phe
 	STDOUT << "Finished!\n";
 	STDOUT.flush();
 }
+
+void outputCultureIndicesAsMaps(const CultureIndexMap& cultures, const QDir& outputDirectory)
+{
+	try {
+		QImage imag(":/root/plainMap.png");
+		QColor yellow(255,255,0);
+		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
+		for(auto it = std::begin(cultures); it != std::end(cultures); ++it) {
+			STDOUT << "Processing " << it.key() << '\n';
+			STDOUT.flush();
+			QString outPath = outputDirectory.absoluteFilePath(QStringLiteral("%1.png").arg(it.key()));
+			QImage pulsats = imag.copy();
+			for(const auto& zit : it.value()) {
+				int x = zit % pulsats.width();
+				int y = zit / pulsats.width();
+				pulsats.setPixelColor(x,y,yellow);
+			}
+			pulsats.save(outPath);
+		}
+	} catch (std::exception& e) {
+		STDOUT << e.what() << '\n';
+		STDOUT.flush();
+	}
+}

@@ -89,24 +89,38 @@ void outputIndices() {
 	traitJson.flush();
 	traitJson.close();
 }
-void useIndices()
+
+CultureIndexMap getCultureIndices()
 {
-	QFile phenoDefinesFile(QStringLiteral("phenotypeIndices.json"));
+	CultureIndexMap cultures;
 	QFile cultureDefinitionsFile(QStringLiteral("cultureIndices.json"));
-	if(!phenoDefinesFile.open(QFile::ReadOnly)) {
-		STDOUT << "Did not find \'phenotypeIndices.json\' in the application folder. Exiting!\n";
-		STDOUT.flush();
-		return;
-	}
 	if(!cultureDefinitionsFile.open(QFile::ReadOnly)) {
 		STDOUT << "Did not find \'cultureIndices.json\' in the application folder. Exiting!\n";
 		STDOUT.flush();
-		return;
+		return cultures;
+	}
+	auto cultureDoc(QJsonDocument::fromJson(cultureDefinitionsFile.readAll()).object());
+	for(auto it = std::begin(cultureDoc); it != std::end(cultureDoc); ++it) {
+		STDOUT << it.key() << '\n';
+		if(it.value().isArray()) {
+			QJsonArray arr = it.value().toArray();
+			IndexContainer ind;
+			for(const auto& zit : qAsConst(arr)) ind.insert(zit.toInt());
+			cultures.insert(it.key(),ind);
+		}
+	}
+	return cultures;
+}
+PhenotypeIndexMap getPhenotypeIndices()
+{
+	PhenotypeIndexMap phenotypes;
+	QFile phenoDefinesFile(QStringLiteral("phenotypeIndices.json"));
+	if(!phenoDefinesFile.open(QFile::ReadOnly)) {
+		STDOUT << "Did not find \'phenotypeIndices.json\' in the application folder. Exiting!\n";
+		STDOUT.flush();
+		return phenotypes;
 	}
 	auto phenoDoc(QJsonDocument::fromJson(phenoDefinesFile.readAll()).object());
-	auto cultureDoc(QJsonDocument::fromJson(cultureDefinitionsFile.readAll()).object());
-	CultureIndexMap cultures;
-	PhenotypeIndexMap phenotypes;
 	for(auto it = std::begin(phenoDoc); it != std::end(phenoDoc); ++it) {
 		STDOUT << it.key() << '\n';
 		if(it.value().isObject()) {
@@ -119,18 +133,24 @@ void useIndices()
 			phenotypes.insert(it.key(),ind);
 		}
 	}
-	for(auto it = std::begin(cultureDoc); it != std::end(cultureDoc); ++it) {
-		STDOUT << it.key() << '\n';
-		if(it.value().isArray()) {
-			QJsonArray arr = it.value().toArray();
-			IndexContainer ind;
-			for(const auto& zit : qAsConst(arr)) ind.insert(zit.toInt());
-			cultures.insert(it.key(),ind);
-		}
-	}
+	return phenotypes;
+}
+
+void useIndices()
+{
+	auto cultures = getCultureIndices();
+	auto phenotypes = getPhenotypeIndices();
 	QDir outDir("autoassigned_phenotypes");
 	if(!outDir.exists()) outDir.mkpath(".");
 	doComparisons(cultures,phenotypes,outDir);
+}
+
+void generateCultureMaps()
+{
+	auto cultures = getCultureIndices();
+	QDir outDir("culture_maps");
+	if(!outDir.exists()) outDir.mkpath(".");
+	outputCultureIndicesAsMaps(cultures,outDir);
 }
 
 int main(int argc, char *argv[])
@@ -142,6 +162,7 @@ int main(int argc, char *argv[])
 	}
 	if(args.size() >= 2 && args[1] == QStringLiteral("--createIndices")) outputIndices();
 	else if(args.size() >= 2 && args[1] == QStringLiteral("--useIndices")) useIndices();
+	else if(args.size() >= 2 && args[1] == QStringLiteral("--generateCultureMaps")) generateCultureMaps();
 	else defaultBehaviour();
 	return 0;
 }

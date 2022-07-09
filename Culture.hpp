@@ -22,9 +22,10 @@ typedef QMap<QString,QString> PathMap;
 typedef QMap<QString,CultureDefinition> CultureMap;
 typedef std::span<const QRgb> ConstPixelSpan;
 typedef std::span<QRgb> PixelSpan;
-void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, QVector<int>& indices);
-void getPhenoIndices(const ConstPixelSpan& pheno, QVector<int>& primaryIndices);
-void getPhenoIndices(const ConstPixelSpan& pheno, QVector<int>& primaryIndices, QVector<int>& secondaryIndices);
+void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, IndexContainer& indices);
+void getPhenoIndices(const ConstPixelSpan& pheno, IndexContainer primaryIndices);
+void getPhenoIndices(const ConstPixelSpan& pheno, IndexContainer& primaryIndices, IndexContainer& secondaryIndices);
+void getPhenoIndices(const ConstPixelSpan& pheno, PhenotypeIndexContianer& container);
 double compareWith(const ConstPixelSpan& mask, const ConstPixelSpan& pheno, const QColor& colour);
 double compareWith(const IndexContainer& cultureIndices, const IndexContainer& phenoIndices, bool secondary = false);
 

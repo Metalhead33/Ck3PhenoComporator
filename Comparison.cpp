@@ -72,8 +72,8 @@ void doComparisons(const PathMap& paths, QJsonObject& phenoOut)
 		QImage imag(fileinfo.absoluteFilePath());
 		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
 		ConstPixelSpan phenotypeMap(reinterpret_cast<const QRgb*>(imag.bits()),imag.width() * imag.height());
-		QVector<int> primaryIndices;
-		QVector<int> secondaryIndices;
+		IndexContainer primaryIndices;
+		IndexContainer secondaryIndices;
 		getPhenoIndices(phenotypeMap,primaryIndices,secondaryIndices);
 		QJsonArray primaryArr,secondaryArr;
 		for(const auto& zit : qAsConst(primaryIndices)) primaryArr.push_back(zit);
@@ -91,7 +91,7 @@ void doComparisons(const CultureMap& cultures, QJsonObject& cultureOut)
 		QImage cultureImg(it.value().cultureMapPath);
 		if(cultureImg.format() != QImage::Format_RGB32) cultureImg.convertTo(QImage::Format_RGB32);
 		ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),cultureImg.width() * cultureImg.height());
-		QVector<int> indices;
+		IndexContainer indices;
 		getCultureIndices(cultureMap,it.value().cultureColour,indices);
 		QJsonArray arr;
 		for(const auto& zit : qAsConst(indices)) arr.push_back(zit);

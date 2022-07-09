@@ -17,32 +17,37 @@ double compareWith(const ConstPixelSpan& mask, const ConstPixelSpan& pheno, cons
 	return toReturn;
 }
 
-void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, QVector<int>& indices)
+void getCultureIndices(const ConstPixelSpan& mask, const QColor& colour, IndexContainer& indices)
 {
 	QRgb maskColour = colour.rgb();
 	for(size_t i = 0; i < mask.size(); ++i) {
 		const auto& maskC = mask[i];
 		if(maskC == maskColour) {
-			indices.push_back(i);
+			indices.insert(i);
 		}
 	}
 }
 
-void getPhenoIndices(const ConstPixelSpan& pheno, QVector<int>& primaryIndices, QVector<int>& secondaryIndices)
+void getPhenoIndices(const ConstPixelSpan& pheno, IndexContainer& primaryIndices, IndexContainer& secondaryIndices)
 {
 	for(size_t i = 0; i < pheno.size(); ++i) {
 		const auto& phenoC = pheno[i];
-		if(phenoC == YELLOW) primaryIndices.push_back(i);
-		else if(phenoC == DARK_YELLOW) secondaryIndices.push_back(i);
+		if(phenoC == YELLOW) primaryIndices.insert(i);
+		else if(phenoC == DARK_YELLOW) secondaryIndices.insert(i);
 	}
 }
 
-void getPhenoIndices(const ConstPixelSpan& pheno, QVector<int>& primaryIndices)
+void getPhenoIndices(const ConstPixelSpan& pheno, IndexContainer primaryIndices)
 {
 	for(size_t i = 0; i < pheno.size(); ++i) {
 		const auto& phenoC = pheno[i];
-		if(phenoC == YELLOW) primaryIndices.push_back(i);
+		if(phenoC == YELLOW) primaryIndices.insert(i);
 	}
+}
+
+void getPhenoIndices(const ConstPixelSpan& pheno, PhenotypeIndexContianer& container)
+{
+	getPhenoIndices(pheno,container.primary,container.secondary);
 }
 
 double compareWith(const IndexContainer& cultureIndices, const IndexContainer& phenoIndices, bool secondary)

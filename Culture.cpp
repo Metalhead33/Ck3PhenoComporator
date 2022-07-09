@@ -11,7 +11,7 @@ double compareWith(const ConstPixelSpan& mask, const ConstPixelSpan& pheno, cons
 		const auto& phenoC = pheno[i];
 		if(maskC == maskColour) {
 			if(phenoC == YELLOW) toReturn += 1.0;
-			else if(phenoC == DARK_YELLOW) toReturn += 0.05;
+			else if(phenoC == DARK_YELLOW) toReturn += 0.1;
 		}
 	}
 	return toReturn;

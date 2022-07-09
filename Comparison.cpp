@@ -35,7 +35,7 @@ void doTheComparisons(const ConstPixelSpan& mask, const QColor& colour, const Pa
 		QFileInfo fileinfo(it.value());
 		QImage imag(fileinfo.absoluteFilePath());
 		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
-		phenoOccurences.insert(it.key(),compareWith(mask, ConstPixelSpan(reinterpret_cast<const QRgb*>(imag.bits()),imag.width() * imag.height()),colour));
+		phenoOccurences.insert(it.key(),compareWith(mask, ConstPixelSpan(reinterpret_cast<const QRgb*>(imag.bits()),static_cast<size_t>( imag.width() * imag.height()) ),colour));
 	}
 	doTheComparisons(phenoOccurences,textStream);
 }
@@ -47,7 +47,7 @@ void doComparisons(const CultureMap& cultures, const PathMap& paths, const QDir&
 			STDOUT.flush();
 			QImage cultureImg(it.value().cultureMapPath);
 			if(cultureImg.format() != QImage::Format_RGB32) cultureImg.convertTo(QImage::Format_RGB32);
-			ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),cultureImg.width() * cultureImg.height());
+			ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),static_cast<size_t>( cultureImg.width() * cultureImg.height() ) );
 			QFile fileOut(outputDirectory.absoluteFilePath(QStringLiteral("%1.txt").arg(it.key())));
 			if(fileOut.open(QFile::WriteOnly | QFile::Text)) {
 				QTextStream textStream(&fileOut);
@@ -71,7 +71,7 @@ void doComparisons(const PathMap& paths, QJsonObject& phenoOut)
 		QFileInfo fileinfo(it.value());
 		QImage imag(fileinfo.absoluteFilePath());
 		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
-		ConstPixelSpan phenotypeMap(reinterpret_cast<const QRgb*>(imag.bits()),imag.width() * imag.height());
+		ConstPixelSpan phenotypeMap(reinterpret_cast<const QRgb*>(imag.bits()),static_cast<size_t>(imag.width() * imag.height()) );
 		IndexContainer primaryIndices;
 		IndexContainer secondaryIndices;
 		getPhenoIndices(phenotypeMap,primaryIndices,secondaryIndices);
@@ -90,7 +90,7 @@ void doComparisons(const CultureMap& cultures, QJsonObject& cultureOut)
 	for(auto it = std::begin(cultures); it != std::end(cultures); ++it) {
 		QImage cultureImg(it.value().cultureMapPath);
 		if(cultureImg.format() != QImage::Format_RGB32) cultureImg.convertTo(QImage::Format_RGB32);
-		ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),cultureImg.width() * cultureImg.height());
+		ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),static_cast<size_t>( cultureImg.width() * cultureImg.height() ) );
 		IndexContainer indices;
 		getCultureIndices(cultureMap,it.value().cultureColour,indices);
 		QJsonArray arr;

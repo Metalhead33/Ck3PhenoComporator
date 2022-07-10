@@ -53,6 +53,7 @@ void getPhenoIndices(const ConstPixelSpan& pheno, PhenotypeIndexContianer& conta
 double compareWith(const IndexContainer& cultureIndices, const IndexContainer& phenoIndices, bool secondary)
 {
 	IndexContainer nindices = cultureIndices;
+	nindices.detach();
 	nindices.intersect(phenoIndices);
 	if(secondary) return static_cast<double>(nindices.size()) * 0.05;
 	else return static_cast<double>(nindices.size());

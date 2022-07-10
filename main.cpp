@@ -152,6 +152,17 @@ void generateCultureMaps()
 	if(!outDir.exists()) outDir.mkpath(".");
 	outputCultureIndicesAsMaps(cultures,outDir);
 }
+void optimizedOldWay() {
+	if(readBasicPhenotypes()) {
+		PhenotypeIndexMap nphenotypes;
+		CultureIndexMap ncultures;
+		doComparisons(phenotypes,nphenotypes);
+		doComparisons(cultures,ncultures);
+		QDir outDir("autoassigned_phenotypes");
+		if(!outDir.exists()) outDir.mkpath(".");
+		doComparisons(ncultures,nphenotypes,outDir);
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -166,13 +177,15 @@ int main(int argc, char *argv[])
 			   << args[0] << " --createIndices       - Creates phenotype and culture indices for future usage.\n"
 			   << args[0] << " --generateCultureMaps - Generates new culture maps from said indices.\n"
 			   << args[0] << " --useIndices          - Uses said indices to generate phenotype assignments for cultures.\n"
-			   << args[0] << " --oldWay              - Generates phenotype assignments for cultures the old-fashioend, ineffective way. (DEPRECATED, NOT RECOMMENDED!)\n";
+			   << args[0] << " --oldWay              - Generates phenotype assignments for cultures the old-fashioend, ineffective way. (DEPRECATED, NOT RECOMMENDED!)\n"
+			   << args[0] << " --optimizedOldWay     - A more optimized version of the old way\n";
 		STDOUT.flush();
 	}
 	else if(args[1] == QStringLiteral("--createIndices")) outputIndices();
 	else if(args[1] == QStringLiteral("--useIndices")) useIndices();
 	else if(args[1] == QStringLiteral("--generateCultureMaps")) generateCultureMaps();
 	else if(args[1] == QStringLiteral("--oldWay")) defaultBehaviour();
+	else if(args[1] == QStringLiteral("--optimizedOldWay")) optimizedOldWay();
 	else {
 		STDOUT << "Invalid command!\n";
 		STDOUT.flush();

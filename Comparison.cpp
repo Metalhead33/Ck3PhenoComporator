@@ -26,8 +26,11 @@ void doTheComparisons(const QMap<QString,double>& phenoOccurences, QTextStream& 
 	}
 	sort(intMap.begin(), intMap.end(), cmp);
 	for(const auto& it : intMap) {
+		STDOUT << "\t\t\t" << it.second << " = " << it.first << "\n";
 		textStream << "\t\t\t" << it.second << " = " << it.first << "\n";
 	}
+	textStream.flush();
+	STDOUT.flush();
 }
 void doTheComparisons(const ConstPixelSpan& mask, const QColor& colour, const PathMap& paths, QTextStream& textStream) {
 	QMap<QString,double> phenoOccurences;
@@ -52,9 +55,6 @@ void doComparisons(const CultureMap& cultures, const PathMap& paths, const QDir&
 			if(fileOut.open(QFile::WriteOnly | QFile::Text)) {
 				QTextStream textStream(&fileOut);
 				doTheComparisons(cultureMap,it.value().cultureColour,paths,textStream);
-				textStream.flush();
-				fileOut.flush();
-				fileOut.close();
 			}
 		}  catch (std::exception& e) {
 			STDOUT << e.what() << '\n';
@@ -84,6 +84,18 @@ void doComparisons(const PathMap& paths, QJsonObject& phenoOut)
 		phenoOut[it.key()] = tmpObj;
 	}
 }
+void doComparisons(const PathMap& paths, PhenotypeIndexMap& phenoOut)
+{
+	for(auto it = std::begin(paths); it != std::end(paths); ++it) {
+		QFileInfo fileinfo(it.value());
+		QImage imag(fileinfo.absoluteFilePath());
+		if(imag.format() != QImage::Format_RGB32) imag.convertTo(QImage::Format_RGB32);
+		ConstPixelSpan phenotypeMap(reinterpret_cast<const QRgb*>(imag.bits()),static_cast<size_t>(imag.width() * imag.height()) );
+		PhenotypeIndexContianer indcont;
+		getPhenoIndices(phenotypeMap,indcont.primary,indcont.secondary);
+		phenoOut.insert(it.key(),indcont);
+	}
+}
 
 void doComparisons(const CultureMap& cultures, QJsonObject& cultureOut)
 {
@@ -96,6 +108,18 @@ void doComparisons(const CultureMap& cultures, QJsonObject& cultureOut)
 		QJsonArray arr;
 		for(const auto& zit : qAsConst(indices)) arr.push_back(zit);
 		cultureOut[it.key()] = arr;
+	}
+}
+
+void doComparisons(const CultureMap& cultures, CultureIndexMap& cultureOut)
+{
+	for(auto it = std::begin(cultures); it != std::end(cultures); ++it) {
+		QImage cultureImg(it.value().cultureMapPath);
+		if(cultureImg.format() != QImage::Format_RGB32) cultureImg.convertTo(QImage::Format_RGB32);
+		ConstPixelSpan cultureMap(reinterpret_cast<const QRgb*>(cultureImg.bits()),static_cast<size_t>( cultureImg.width() * cultureImg.height() ) );
+		IndexContainer indices;
+		getCultureIndices(cultureMap,it.value().cultureColour,indices);
+		cultureOut.insert(it.key(),indices);
 	}
 }
 
@@ -121,9 +145,6 @@ void doComparisons(const CultureIndexMap& cultures, const PhenotypeIndexMap& phe
 			if(fileOut.open(QFile::WriteOnly | QFile::Text)) {
 				QTextStream textStream(&fileOut);
 				doTheComparisons(it.value(),phenotypes,textStream);
-				textStream.flush();
-				fileOut.flush();
-				fileOut.close();
 			}
 		}  catch (std::exception& e) {
 			STDOUT << e.what() << '\n';
